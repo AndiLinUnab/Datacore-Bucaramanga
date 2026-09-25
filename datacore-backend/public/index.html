@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DataCore Bucaramanga — Sala de Control (en vivo)</title>
+<style>
+:root{
+  --bg:#0a0d12; --panel:#121820; --panel2:#161e28; --card:#141b24; --line:#232d3a;
+  --text:#e7edf5; --muted:#8a97a8; --muted2:#5d6b7d; --accent:#33c9c0; --accent2:#5b8cff;
+  --ok:#2fbf71; --bad:#ef4c54; --warn:#f2b134;
+  --rack:#33c9c0; --amb:#f2b134; --energy:#ef4c54; --sec:#7c8aa0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(1200px 500px at 15% -10%, rgba(51,201,192,.07), transparent),
+  radial-gradient(1000px 500px at 100% 0%, rgba(91,140,255,.06), transparent),
+  var(--bg);
+  color:var(--text);font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;padding:14px 18px;background:#0d1319ee;backdrop-filter:blur(6px);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;z-index:5}
+.logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-size:20px}
+h1{font-size:16px;margin:0}
+.sub{color:var(--muted);font-size:12px;margin:0}
+.badge{margin-left:auto;font-size:11px;color:var(--muted);border:1px solid var(--line);padding:5px 10px;border-radius:20px;display:flex;align-items:center;gap:6px}
+.badge.live{color:var(--ok);border-color:rgba(47,191,113,.4)}
+.badge.err{color:var(--bad);border-color:rgba(239,76,84,.4)}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge.live .dot{animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px;display:flex;align-items:center;justify-content:space-between}
+.span12{grid-column:span 12}.span6{grid-column:span 6}.span4{grid-column:span 4}.span3{grid-column:span 3}
+@media(max-width:900px){.span4,.span6{grid-column:span 12}.span3{grid-column:span 6}}
+.stat-row{display:flex;gap:10px;flex-wrap:wrap}
+.stat{flex:1;min-width:100px;background:var(--panel2);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--line)}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{background:var(--panel2);border:1px solid var(--line);color:var(--muted);padding:5px 11px;border-radius:20px;font-size:11px;cursor:pointer;user-select:none}
+.fchip.active{color:#04211f;font-weight:700}
+.fchip[data-f="all"].active{background:var(--text);color:#0a0d12}
+.fchip[data-f="rack"].active{background:var(--rack)}
+.fchip[data-f="amb"].active{background:var(--amb)}
+.fchip[data-f="energy"].active{background:var(--energy);color:#2b0406}
+.fchip[data-f="sec"].active{background:var(--sec);color:#111820}
+
+.devgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;border-left:3px solid var(--line)}
+.card.rack{border-left-color:var(--rack)}.card.amb{border-left-color:var(--amb)}
+.card.energy{border-left-color:var(--energy)}.card.sec{border-left-color:var(--sec)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.card-id{font-size:13.5px;font-weight:700}
+.card-zona{font-size:11px;color:var(--muted)}
+.status{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.status .dot{width:6px;height:6px;border-radius:50%}
+.status.ok{background:rgba(47,191,113,.13);color:var(--ok)}.status.ok .dot{background:var(--ok);animation:pulse 1.6s infinite}
+.status.bad{background:rgba(239,76,84,.13);color:var(--bad)}.status.bad .dot{background:var(--bad)}
+.status.warn{background:rgba(242,177,52,.13);color:var(--warn)}.status.warn .dot{background:var(--warn)}
+.card-origen{font-size:11px;color:var(--muted2);margin:2px 0 10px;line-height:1.3}
+.readings{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:11.5px;line-height:1.3}
+.chip .k{color:var(--muted);margin-right:4px}
+.chip .v{font-variant-numeric:tabular-nums;font-weight:600;font-family:ui-monospace,Menlo,Consolas,monospace}
+.chip.na .v{color:var(--muted2);font-weight:400}
+.card-foot{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--muted2);border-top:1px solid var(--line);padding-top:8px}
+.card-foot b{color:var(--muted);font-weight:600}
+
+.kpi{background:var(--panel2);border-radius:10px;padding:10px;border:1px solid var(--line)}
+.kpi .l{font-size:11px;color:var(--muted);margin-bottom:6px}
+.kpi .row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+.kpi .row b{color:var(--text);font-size:16px;font-variant-numeric:tabular-nums;display:block}
+
+.chartbox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
+.chartbox h3{font-size:11.5px;color:var(--muted);margin:0 0 6px;font-weight:600}
+.chart-legend{display:flex;gap:10px;font-size:10.5px;color:var(--muted);margin-top:4px}
+.chart-legend span{display:inline-flex;align-items:center;gap:4px}
+.chart-legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+.alert{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.alert:last-child{border-bottom:none}
+.alert .ic{color:var(--warn)}
+.alert small{color:var(--muted);display:block}
+.alert.active{background:rgba(242,177,52,.06);border-radius:8px;padding:8px}
+
+.zonegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:600px){.zonegrid{grid-template-columns:repeat(2,1fr)}}
+.zone{border-radius:10px;padding:10px;color:#04140f;font-size:11.5px;min-height:60px}
+.zone b{display:block;font-size:12.5px;margin-bottom:2px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🖥️</div>
+  <div>
+    <h1>DataCore Bucaramanga</h1>
+    <p class="sub">Centro de Datos · Sala de Control · datos en vivo desde IoT Central</p>
+  </div>
+  <div class="badge" id="statusBadge"><span class="dot"></span>Conectando…</div>
+</header>
+
+<main>
+  <section class="span12">
+    <h2>Estado de la flota</h2>
+    <div class="stat-row">
+      <div class="stat"><b id="connCount" style="color:var(--ok)">–</b>Conectados</div>
+      <div class="stat"><b id="discCount" style="color:var(--bad)">–</b>Desconectados</div>
+      <div class="stat"><b id="unassCount" style="color:var(--warn)">–</b>Unassociated</div>
+      <div class="stat"><b id="totalCount">–</b>Total dispositivos</div>
+      <div class="stat"><b id="lastFetch">–</b>Última actualización</div>
+    </div>
+  </section>
+
+  <section class="span8">
+    <h2>KPIs — último / mínimo / máximo (desde que arrancó esta sesión)</h2>
+    <div class="stat-row" id="kpis" style="flex-wrap:wrap"></div>
+  </section>
+
+  <section class="span4">
+    <h2>Alertas / Rules — ventana en vivo</h2>
+    <div id="alerts"></div>
+  </section>
+
+  <section class="span12">
+    <h2>Gráficos de telemetría — variables indispensables</h2>
+    <div class="stat-row" style="flex-wrap:wrap;gap:12px">
+      <div class="chartbox" style="flex:1;min-width:260px">
+        <h3>Rack A — Temp Intake / Exhaust (°C)</h3>
+        <svg viewBox="0 0 300 90" width="100%" height="90" id="chart1"></svg>
+        <div class="chart-legend"><span><i style="background:#33c9c0"></i>Intake</span><span><i style="background:#5b8cff"></i>Exhaust</span></div>
+      </div>
+      <div class="chartbox" style="flex:1;min-width:260px">
+        <h3>Pasillo Frío — Diff Pressure (Pa)</h3>
+        <svg viewBox="0 0 300 90" width="100%" height="90" id="chart2"></svg>
+      </div>
+      <div class="chartbox" style="flex:1;min-width:260px">
+        <h3>Sala de Aire — PM2.5 / AQI</h3>
+        <svg viewBox="0 0 300 90" width="100%" height="90" id="chart3"></svg>
+        <div class="chart-legend"><span><i style="background:#f2b134"></i>PM2.5</span><span><i style="background:#ef4c54"></i>AQI</span></div>
+      </div>
+      <div class="chartbox" style="flex:1;min-width:260px">
+        <h3>Tablero PDU — Power kW</h3>
+        <svg viewBox="0 0 300 90" width="100%" height="90" id="chart4"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="span6">
+    <h2>Mapa de zonas — Centro de Datos</h2>
+    <div class="zonegrid">
+      <div class="zone" style="background:var(--rack)"><b>Rack A</b>rack-a-01</div>
+      <div class="zone" style="background:var(--rack)"><b>Rack B</b>rack-b-02</div>
+      <div class="zone" style="background:var(--rack)"><b>Rack C</b>rack-c-03</div>
+      <div class="zone" style="background:var(--amb)"><b>Pasillo Frío</b>pasillo-frio-04</div>
+      <div class="zone" style="background:var(--amb)"><b>Exterior</b>clima-ext-05</div>
+      <div class="zone" style="background:var(--amb)"><b>Sala (aire)</b>aire-sala-06</div>
+      <div class="zone" style="background:var(--amb)"><b>Techo (humo)</b>humo-08</div>
+      <div class="zone" style="background:var(--sec)"><b>Piso técnico</b>agua-piso-07</div>
+      <div class="zone" style="background:var(--energy)"><b>Tablero PDU</b>pdu-09</div>
+      <div class="zone" style="background:var(--sec)"><b>Puerta acceso</b>puerta-10</div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--rack)"></i>Racks</span>
+      <span><i style="background:var(--amb)"></i>Ambiental</span>
+      <span><i style="background:var(--energy)"></i>Energía</span>
+      <span><i style="background:var(--sec)"></i>Seguridad</span>
+    </div>
+  </section>
+
+  <section class="span6">
+    <h2>
+      <span>Dispositivos — telemetría en vivo</span>
+      <div class="filters" id="filters">
+        <span class="fchip active" data-f="all">Todos</span>
+        <span class="fchip" data-f="rack">Racks</span>
+        <span class="fchip" data-f="amb">Ambiental</span>
+        <span class="fchip" data-f="energy">Energía</span>
+        <span class="fchip" data-f="sec">Seguridad</span>
+      </div>
+    </h2>
+    <div class="devgrid" id="devGrid" style="max-height:420px;overflow:auto"><div class="card">Cargando…</div></div>
+  </section>
+</main>
+
+<script>
+const POLL_MS = 15000;
+let currentFilter = "all";
+let lastData = null;
+
+const CATEGORY = {
+  "rack-a-01":"rack", "rack-b-02":"rack", "rack-c-03":"rack",
+  "pasillo-frio-04":"amb", "clima-ext-05":"amb", "aire-sala-06":"amb", "humo-08":"amb",
+  "pdu-09":"energy",
+  "agua-piso-07":"sec", "puerta-10":"sec",
+};
+const CAT_ICON = { rack:"🗄️", amb:"🌡️", energy:"⚡", sec:"🔒" };
+
+function relTime(ts){
+  if(!ts) return "sin datos";
+  const s = Math.max(0, Math.round((Date.now() - new Date(ts).getTime())/1000));
+  if (s < 60) return `hace ${s}s`;
+  if (s < 3600) return `hace ${Math.round(s/60)}min`;
+  if (s < 86400) return `hace ${Math.round(s/3600)}h`;
+  return `hace ${Math.round(s/86400)}d`;
+}
+function fmtVal(v){
+  if (v === null || v === undefined) return null;
+  if (typeof v === "number") return Number.isInteger(v) ? v : v.toFixed(2);
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+function fmtNum(n, d=2){ return (n===undefined||n===null||Number.isNaN(n)) ? "—" : Number(n).toFixed(d); }
+
+function statusInfo(d){
+  if (d.unassociated) return { cls:"warn", label:"Unassociated" };
+  if (d.connected) return { cls:"ok", label:"Connected" };
+  return { cls:"bad", label:"Disconnected" };
+}
+
+function renderCard(d){
+  const cat = CATEGORY[d.id] || "sec";
+  const st = statusInfo(d);
+  const chips = d.readings.map(r=>{
+    const v = fmtVal(r.value);
+    return `<span class="chip ${v===null?'na':''}"><span class="k">${r.name}</span><span class="v">${v===null?'—':v}</span></span>`;
+  }).join("");
+  return `
+    <div class="card ${cat}">
+      <div class="card-top">
+        <div><div class="card-id">${CAT_ICON[cat]} ${d.id}</div><div class="card-zona">${d.zona}</div></div>
+        <span class="status ${st.cls}"><span class="dot"></span>${st.label}</span>
+      </div>
+      <div class="card-origen">${d.origen}</div>
+      <div class="readings">${chips}</div>
+      <div class="card-foot"><span>Última lectura</span><b>${relTime(d.lastSeen)}</b></div>
+    </div>`;
+}
+
+function applyFilter(){
+  document.querySelectorAll(".fchip").forEach(c=>c.classList.toggle("active", c.dataset.f===currentFilter));
+  if(!lastData) return;
+  const filtered = currentFilter==="all" ? lastData.devices : lastData.devices.filter(d=>(CATEGORY[d.id]||"sec")===currentFilter);
+  document.getElementById("devGrid").innerHTML = filtered.map(renderCard).join("") || '<div class="card">Sin dispositivos en esta categoría</div>';
+}
+
+document.getElementById("filters").addEventListener("click", e=>{
+  const chip = e.target.closest(".fchip");
+  if(!chip) return;
+  currentFilter = chip.dataset.f;
+  applyFilter();
+});
+
+function renderKpis(stats){
+  const items = [
+    ["rack-a-01.tempIntake","Rack A · Temp Intake (°C)"],
+    ["rack-a-01.tempExhaust","Rack A · Temp Exhaust (°C)"],
+    ["rack-b-02.tempIntake","Rack B · Temp Intake (°C)"],
+    ["rack-c-03.tempIntake","Rack C · Temp Intake (°C)"],
+    ["pasillo-frio-04.diffPressure","Pasillo Frío · Diff Pressure (Pa)"],
+    ["aire-sala-06.pm25","Sala Aire · PM2.5"],
+    ["aire-sala-06.aqi","Sala Aire · AQI"],
+    ["pdu-09.powerKw","PDU · Power (kW)"],
+  ];
+  document.getElementById("kpis").innerHTML = items.map(([key,label])=>{
+    const s = stats[key];
+    return `<div class="kpi" style="min-width:140px">
+      <div class="l">${label}</div>
+      <div class="row"><span>último<br><b>${s?fmtNum(s.last):'—'}</b></span>
+      <span>mín<br><b>${s?fmtNum(s.min):'—'}</b></span>
+      <span>máx<br><b>${s?fmtNum(s.max):'—'}</b></span></div>
+    </div>`;
+  }).join("");
+}
+
+function renderAlerts(active, log){
+  const activeHtml = active.map(a=>
+    `<div class="alert active"><span class="ic">⚠</span><div><b>${a.rule}</b><small>${a.deviceId} · activa desde ${new Date(a.since).toLocaleTimeString()}</small></div></div>`
+  ).join("");
+  const logHtml = log.filter(a=>!active.find(x=>x.rule===a.rule && x.deviceId===a.deviceId))
+    .slice(0,6).map(a=>
+    `<div class="alert"><span class="ic" style="color:var(--muted2)">•</span><div><b>${a.rule}</b><small>${a.deviceId} · disparada ${new Date(a.since).toLocaleTimeString()}</small></div></div>`
+  ).join("");
+  document.getElementById("alerts").innerHTML = (activeHtml || '<div class="alert">Sin alertas activas</div>') +
+    (logHtml ? `<div style="font-size:10.5px;color:var(--muted2);margin:8px 0 2px">Historial reciente</div>${logHtml}` : "");
+}
+
+function drawSparkline(svgId, seriesList){
+  const svg = document.getElementById(svgId);
+  const w=300,h=90,pad=10;
+  const allVals = seriesList.flatMap(s=>s.data.map(p=>p.v)).filter(v=>Number.isFinite(v));
+  if(allVals.length < 2){ svg.innerHTML = `<text x="8" y="45" fill="#5d6b7d" font-size="10">esperando datos…</text>`; return; }
+  const min = Math.min(...allVals), max = Math.max(...allVals);
+  const range = (max-min) || 1;
+  let out = `<line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="#232d3a"/>`;
+  seriesList.forEach(s=>{
+    const pts = s.data.filter(p=>Number.isFinite(p.v)).map((p,i,arr)=>{
+      const x = pad + i*(w-2*pad)/Math.max(1,arr.length-1);
+      const y = h-pad-((p.v-min)/range)*(h-2*pad);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+    out += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2"/>`;
+  });
+  svg.innerHTML = out;
+}
+
+function renderCharts(series){
+  drawSparkline("chart1", [
+    { data: series["rack-a-01.tempIntake"]||[], color:"#33c9c0" },
+    { data: series["rack-a-01.tempExhaust"]||[], color:"#5b8cff" },
+  ]);
+  drawSparkline("chart2", [ { data: series["pasillo-frio-04.diffPressure"]||[], color:"#f2b134" } ]);
+  drawSparkline("chart3", [
+    { data: series["aire-sala-06.pm25"]||[], color:"#f2b134" },
+    { data: series["aire-sala-06.aqi"]||[], color:"#ef4c54" },
+  ]);
+  drawSparkline("chart4", [ { data: series["pdu-09.powerKw"]||[], color:"#ef4c54" } ]);
+}
+
+async function refresh(){
+  const badge = document.getElementById("statusBadge");
+  try {
+    const res = await fetch("/api/status");
+    if(res.status === 202){ badge.innerHTML = '<span class="dot"></span>Primer sondeo en curso…'; return; }
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    lastData = data;
+
+    badge.innerHTML = '<span class="dot"></span>En vivo';
+    badge.className = "badge live";
+
+    document.getElementById("connCount").textContent = data.connectedCount;
+    document.getElementById("discCount").textContent = data.disconnectedCount;
+    document.getElementById("unassCount").textContent = data.unassociatedCount;
+    document.getElementById("totalCount").textContent = data.total;
+    document.getElementById("lastFetch").textContent = new Date(data.fetchedAt).toLocaleTimeString();
+
+    renderKpis(data.stats);
+    renderAlerts(data.activeAlerts, data.alertLog);
+    renderCharts(data.series);
+    applyFilter();
+  } catch (err) {
+    badge.innerHTML = '<span class="dot"></span>Error de conexión con el backend';
+    badge.className = "badge err";
+    console.error(err);
+  }
+}
+
+refresh();
+setInterval(refresh, POLL_MS);
+setInterval(()=>{ if(lastData) applyFilter(); }, 5000);
+</script>
+</body>
+</html>

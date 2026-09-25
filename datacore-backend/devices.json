@@ -1,0 +1,82 @@
+[
+  {
+    "id": "rack-a-01",
+    "displayName": "Rack A — Digital Twin nativo",
+    "zona": "Rack A",
+    "origen": "Digital Twin / simulador nativo",
+    "samplingIntervalSec": 15,
+    "telemetry": ["tempIntake", "tempExhaust", "humidity"]
+  },
+  {
+    "id": "rack-b-02",
+    "displayName": "Rack B — Wokwi ESP32",
+    "zona": "Rack B",
+    "origen": "Wokwi ESP32 (DHT22)",
+    "samplingIntervalSec": 15,
+    "telemetry": ["tempIntake", "tempExhaust", "humidity"]
+  },
+  {
+    "id": "rack-c-03",
+    "displayName": "Rack C — Python (DPS/MQTT)",
+    "zona": "Rack C",
+    "origen": "Python (azure-iot-device, DPS)",
+    "samplingIntervalSec": 30,
+    "telemetry": ["tempIntake", "tempExhaust", "humidity"]
+  },
+  {
+    "id": "pasillo-frio-04",
+    "displayName": "Pasillo Frío — Python (paho-mqtt)",
+    "zona": "Pasillo frío",
+    "origen": "Python (paho-mqtt, SAS manual)",
+    "samplingIntervalSec": 60,
+    "telemetry": ["tempAisle", "diffPressure", "humidityAisle"]
+  },
+  {
+    "id": "clima-ext-05",
+    "displayName": "Exterior — API Open-Meteo",
+    "zona": "Exterior / free-cooling",
+    "origen": "Puente API pública (Open-Meteo clima)",
+    "samplingIntervalSec": 300,
+    "telemetry": ["tempExt", "humidityExt", "solarRadiation"]
+  },
+  {
+    "id": "aire-sala-06",
+    "displayName": "Calidad de aire — API + CO2 sim.",
+    "zona": "Calidad de aire sala",
+    "origen": "Puente API (Open-Meteo AQ) + CO2 simulado",
+    "samplingIntervalSec": 300,
+    "telemetry": ["pm25", "aqi", "co2"]
+  },
+  {
+    "id": "agua-piso-07",
+    "displayName": "Detección de agua — Node.js/MQTT.js",
+    "zona": "Piso técnico",
+    "origen": "Node.js + MQTT.js",
+    "samplingIntervalSec": 60,
+    "telemetry": ["waterLeak", "floorHumidity"]
+  },
+  {
+    "id": "humo-08",
+    "displayName": "Detección de humo — Replay CSV",
+    "zona": "Techo (detección humo)",
+    "origen": "Replay de CSV histórico",
+    "samplingIntervalSec": 300,
+    "telemetry": ["smokeLevel", "tempCeiling"]
+  },
+  {
+    "id": "pdu-09",
+    "displayName": "Tablero PDU — Wokwi #2",
+    "zona": "Tablero PDU",
+    "origen": "Wokwi #2 (potenciómetro → ACS712)",
+    "samplingIntervalSec": 15,
+    "telemetry": ["powerKw", "currentAmps", "powerFactor"]
+  },
+  {
+    "id": "puerta-10",
+    "displayName": "Puerta de acceso — HTTP/REST",
+    "zona": "Puerta de acceso",
+    "origen": "Puente HTTP/REST (Flask)",
+    "samplingIntervalSec": 0,
+    "telemetry": ["doorState"]
+  }
+]
