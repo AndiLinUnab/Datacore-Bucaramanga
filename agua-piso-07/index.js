@@ -3,7 +3,7 @@ const mqtt = require('mqtt');
 
 const HOSTNAME = "iotc-3a01adfb-1862-4c2e-9211-ef6c980285ca.azure-devices.net"; // ej: iotc-xxxxx.azure-devices.net
 const DEVICE_ID = process.env.AGUA_PISO_DEVICE_ID;
-const SAS_TOKEN = "SharedAccessSignature sr=iotc-3a01adfb-1862-4c2e-9211-ef6c980285ca.azure-devices.net%2Fdevices%2Fagua-piso-07&sig=RKHWK1BvbNOPdk4KxxNGukr7XzOD%2FHBBiiZVB%2FKtg%2BA%3D&se=1790298104";
+const SAS_TOKEN = "SharedAccessSignature sr=iotc-3a01adfb-1862-4c2e-9211-ef6c980285ca.azure-devices.net%2Fdevices%2Fagua-piso-07&sig=a6NKvG8ht1RXIpgCO7kcmqAHdrp67cBjbbwTtoKhb0Y%3D&se=1792896531";
 
 const SAMPLING_INTERVAL_MS = 60000; // 60s según catálogo
 

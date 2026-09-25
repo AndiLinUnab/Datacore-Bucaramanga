@@ -11,11 +11,11 @@ from azure.iot.device.aio import ProvisioningDeviceClient
 load_dotenv()
 
 ID_SCOPE = os.environ["ID_SCOPE"]
-DEVICE_ID = os.environ["AGUA_PISO_DEVICE_ID"]
-PRIMARY_KEY = os.environ["AGUA_PISO_PRIMARY_KEY"]
+DEVICE_ID = os.environ["RACK_B_DEVICE_ID"]
+PRIMARY_KEY = os.environ["RACK_B_PRIMARY_KEY"]
 PROVISIONING_HOST = "global.azure-devices-provisioning.net"
 
-TOKEN_VALIDITY_SECONDS = 3600 * 6  # 6 horas — ajusta según cuánto vayas a dejar Wokwi corriendo
+TOKEN_VALIDITY_SECONDS = 3600 * 24 * 30  # 30 días — ajusta según cuánto vayas a dejar Wokwi corriendo
 
 
 def generar_sas_token(hostname, device_id, key, expiry_epoch):
